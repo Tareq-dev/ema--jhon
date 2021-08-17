@@ -17,4 +17,5 @@
     height: 30px;
     border: 2px solid rgb(155, 152, 152);
     border-radius: 5px;
+    cursor: pointer;
 }
