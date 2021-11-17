@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 
 const Cart = (props) => {
     const cart = props.cart;
@@ -28,6 +29,10 @@ const Cart = (props) => {
          const precision =num.toFixed(2);
          return Number(precision);
      }
+     let navigate= useNavigate();
+     const handlePlaceOrder = () => {
+        navigate("/login");
+     }
 
     return (
         <div>
@@ -37,6 +42,7 @@ const Cart = (props) => {
           <p><small>Shipping Cost : {shipping} </small></p>
           <p><small> Tax + Vat : {tax} </small></p>
           <p>Total price : {grandTotal}</p>
+          <button onClick={handlePlaceOrder} >Place Order</button>
         </div>
     );
 };
