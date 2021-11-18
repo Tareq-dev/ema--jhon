@@ -1,10 +1,14 @@
 import React from 'react';
+import { Routes,Route } from 'react-router';
 
 const Shipment = () => {
      return (
-          <div>
-               <h2> im from shipment</h2>
-          </div>
+         <div>
+         <Routes>
+         <Route path="/shipment" />
+         <h2>Shipment</h2>
+         </Routes>
+         </div>
      );
 };
 

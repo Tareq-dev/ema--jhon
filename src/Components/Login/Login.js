@@ -1,4 +1,3 @@
-import React from 'react'
 import {useState} from 'react';
 import * as firebase from 'firebase/app';
 import "firebase/auth";
@@ -8,27 +7,25 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { updateProfile } from "firebase/auth";
 import { FacebookAuthProvider } from "firebase/auth";
-import {useContext} from 'react';
+import {useContext } from 'react';
 import {UserContext} from '../../App';
-import { useHistory, useLocation} from 'react';
-
+import { navigate, useNavigate } from 'react-router';
 
 
 firebase.initializeApp(firebaseConfig);
 
 function Login() {
   const [newUser , setNewUser] = useState(false)
-  const [user, setUser] = useState({
+const [user, setUser] = useState({
   isSignIn: false,
   name:'',
   email:'',
   photo:''
 })
 
-const [loggedInUser,setLoggedInUser] = useContext(UserContext);
-const history = useHistory();
-const location = useLocation();
-let { from } = location.state || { from: { pathname: "/" } };
+const [loggedInUser, setLoggedInUser] = useContext(UserContext);
+
+const navigate = useNavigate();
 
 
 
@@ -121,7 +118,7 @@ console.log("clicked");
         });
      }
 
-                  // For SignIn Proccess
+                                      // For SignIn Proccess
         
      if(!newUser && user.email && user.password){
       const auth = getAuth();
@@ -132,8 +129,9 @@ console.log("clicked");
     newUserInfo.success =true;
     setUser(newUserInfo);
     setLoggedInUser(newUserInfo);
-    history.replace(from);
-
+    navigate('/shipment',{
+     replace: true,
+});
     console.log('sign in user info', res.user);
       })
       .catch((error) => {

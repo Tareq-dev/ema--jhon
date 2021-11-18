@@ -31,7 +31,9 @@ const Cart = (props) => {
      }
      let navigate= useNavigate();
      const handlePlaceOrder = () => {
-        navigate("/login");
+       navigate('/shipment',{
+           replace:true,
+       });
      }
 
     return (
