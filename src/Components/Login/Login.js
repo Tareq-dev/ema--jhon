@@ -1,85 +1,56 @@
 import {useState} from 'react';
-import * as firebase from 'firebase/app';
-import "firebase/auth";
-import  firebaseConfig from './firebase.config';
-import { getAuth,signOut, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { updateProfile } from "firebase/auth";
-import { FacebookAuthProvider } from "firebase/auth";
 import {useContext } from 'react';
 import {UserContext} from '../../App';
-import { navigate, useNavigate } from 'react-router';
+import {  useHistory ,useLocation } from 'react-router';
+import {  creatEmail, handleFbSignIn, handleGoogleSignIn, handleSignOut, initializeLoginFramwork, signInEmail } from '../LoginManager/LoginManager';
 
 
-firebase.initializeApp(firebaseConfig);
 
 function Login() {
   const [newUser , setNewUser] = useState(false)
-const [user, setUser] = useState({
+  const [user, setUser] = useState({
   isSignIn: false,
   name:'',
   email:'',
   photo:''
 })
-
+initializeLoginFramwork();
 const [loggedInUser, setLoggedInUser] = useContext(UserContext);
 
-const navigate = useNavigate();
+const history = useHistory();
+const location = useLocation();
+let { from } = location.state || { from: { pathname: "/" } };
 
 
-
-          // GOOGLE SIGNIN PROCCESS
-
-const Gprovider = new GoogleAuthProvider();
-const fbProvider = new FacebookAuthProvider();
-
-
-const handleSignIn =()=>{
-const auth = getAuth();
-signInWithPopup(auth, Gprovider)
-.then(res => {
- const {displayName ,photoURL, email} = res.user;
- const signInUser = {
-   isSignIn: true,
-   name: displayName,
-   email: email,
-   photo: photoURL
- }
- setUser(signInUser);
- console.log(displayName ,photoURL, email);
+const googleSignIn =()=>{
+  handleGoogleSignIn()
+  .then(res => {
+    setUser(res);
+    setLoggedInUser(res);
+    history.replace(from);
   })
-.catch((error) => {
-  console.log(error);
-  console.log(error.message);
-});
 }
 
-  const handleSignOut =()=>{
-  const auth = getAuth();
-  signOut(auth).then(res => {
-  const signOutUser ={
-  isSignIn:false,
-  name:'',
-  password:'',
-  photo:'',
-  email:'',
-  error:'',
-  success: false,
-  newUser: ''
-}
-setUser(signOutUser);
-}).catch((error) => {
-// An error happened.
-});
-console.log("clicked");
+const fbSignIn =()=>{
+  handleFbSignIn()
+  .then(res=>{
+    setUser(res);
+    setLoggedInUser(res);
+    history.replace(from);
+  })
 }
 
-     const handleBlur =(event) => {
+const signOut =()=>{
+ handleSignOut()
+.then(res => {
+      setUser(res);
+    setLoggedInUser(res);
+  })
+}
+        const handleBlur =(event) => {
         let isFormValid = true;
         if(event.target.name === "email"){
         isFormValid = /\S+@\S+\.\S+/.test(event.target.value);
-
        }
 
        if (event.target.name === "password"){
@@ -94,96 +65,41 @@ console.log("clicked");
        }
      }
 
-                                 // handleSubmit
-
-
-
-    const handleSubmit =(event)=> {
+      
+    const handleSubmit =(e)=> {
      if(newUser && user.email && user.password){
-      const auth = getAuth();
-      createUserWithEmailAndPassword(auth, user.email, user.password)
-        .then(res => {
-          const newUserInfo = {...user};
-          newUserInfo.error = '';
-          newUserInfo.success =true;
-          setUser(newUserInfo);
-          updateUserName(user.name);
-        })
-        .catch(error => {
-          const newUserInfo = {...user};
-          newUserInfo.error =  error.message;
-          newUserInfo.success =false;
-          setUser(newUserInfo);
-          
-        });
-     }
-
-                                      // For SignIn Proccess
-        
-     if(!newUser && user.email && user.password){
-      const auth = getAuth();
-      signInWithEmailAndPassword(auth, user.email, user.password)
-       .then(res => {
-    const newUserInfo = {...user};
-    newUserInfo.error = '';
-    newUserInfo.success =true;
-    setUser(newUserInfo);
-    setLoggedInUser(newUserInfo);
-    navigate('/shipment',{
-     replace: true,
-});
-    console.log('sign in user info', res.user);
-      })
-      .catch((error) => {
-        const newUserInfo = {...user};
-        newUserInfo.error =  error.message;
-        newUserInfo.success =false;
-        setUser(newUserInfo);
+       creatEmail(user.name, user.email, user.password)
+      .then(res => {
+        setUser(res);
+        setLoggedInUser(res);
+        history.replace(from);
       });
-
-     }
-     event.preventDefault();
-     }
-
-                                      //  updateUserName
-
-    const updateUserName = name =>{
-      
-    
-  const auth = getAuth();
-  updateProfile(auth.currentUser, {
-  displayName: name 
-          }).then(() => {
-            console.log('user name successfully')
-          }).catch((error) => {
-            console.log(error)
-          });
-                  }
-                                      // Facebook
-
-
-    const handleFbSignIn =()=>{
-
-    const auth = getAuth();
-    signInWithPopup(auth, fbProvider)
-    .then((result) => {
-        const user = result.user;
-        console.log(user);
-      })
-      .catch((error) => {
-        
-      });
-      
+      }
+     
+     e.preventDefault();
     }
-
+  
+    if(!newUser && user.email && user.password){
+      signInEmail(user.email, user.password)
+      .then(res => {
+        setUser(res);
+        setLoggedInUser(res);
+        history.replace(from);
+        })
+     }
+    
+     
+  
+     
+     
   return (
     <div style={{textAlign:'center'}}>
       {
-        user.isSignIn?  <button onClick={handleSignOut}>Sign Out</button> :
-        <button onClick={handleSignIn}>Sign In</button>
+        user.isSignIn?  <button onClick={signOut}>Sign Out</button> :
+        <button onClick={googleSignIn}>Sign In</button>
       }
       <br/>
-      <button onClick={handleFbSignIn}>Sign In By Facebook</button>
+      <button onClick={fbSignIn}>Sign In By Facebook</button>
       {
         user.isSignIn &&
         <div>
@@ -211,6 +127,6 @@ console.log("clicked");
      }
     </div>
   );
-}
+    }
 
 export default Login;
